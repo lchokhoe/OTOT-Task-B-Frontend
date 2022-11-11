@@ -1,0 +1,64 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # Install Node.js 16.17.0
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.17.0"
+
+      # Install dependecies
+      - name: Install dependencies
+        run: npm ci
+
+      # # Rename static main.js
+      # - name: rename main js
+      #   run: mv build/static/js/main.*.*.js build/static/js/main.js
+
+      # Create deployment package and compress it into a zip file
+      - name: Generate deployment package
+        run: zip -r deploy.zip * -x "**node_modules**"
+
+      - name: Get timestamp
+        uses: gerred/actions/current-time@master
+        id: current-time
+
+      - name: Run string replace
+        uses: frabert/replace-string-action@master
+        id: format-time
+        with:
+          pattern: '[:\.]+'
+          string: "${{ steps.current-time.outputs.time }}"
+          replace-with: "-"
+          flags: "g"
+
+      # Create .env file
+      - name: create env file
+        run: |
+          touch .env
+          echo REACT_APP_URI=${{ secrets.REACT_APP_URI }} >> .env
+
+      - name: Beanstalk Deploy for app
+        uses: einaregilsson/beanstalk-deploy@v10
+        with:
+          aws_access_key: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws_secret_key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          application_name: "cs3219-otot-taskb-frontend"
+          environment_name: "Cs3219otottaskbfrontend-env"
+          region: "ap-southeast-1"
+          version_label: "otot-taskb-frontend-new-${{ steps.format-time.outputs.replaced }}"
+          deployment_package: deploy.zip
+
+      - name: Deployed!
+        run: echo App deployed to ELB
