@@ -247,14 +247,12 @@ export default function ContactList() {
   };
 
   const handleNUSMods = async () => {
-    const res = await axios
-      .get(
-        "https://pxrs89it1i.execute-api.ap-southeast-1.amazonaws.com/staging",
-        {}
-      )
-      .catch((error) => {
-        console.log(error);
-      });
+    const url =
+      process.env.REACT_AWS_LAMBDA_URL ||
+      "https://pxrs89it1i.execute-api.ap-southeast-1.amazonaws.com/staging";
+    const res = await axios.get(url, {}).catch((error) => {
+      console.log(error);
+    });
     const newContactList = [];
     for (var key in res.data) {
       if (
