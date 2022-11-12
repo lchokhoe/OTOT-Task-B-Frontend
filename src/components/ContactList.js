@@ -6,7 +6,7 @@ export default function ContactList() {
   const [newEmail, setNewEmail] = useState(null);
   const [newPhone, setNewPhone] = useState(null);
   const [newGender, setNewGender] = useState(null);
-  const [newId, setNewId] = useState(null);
+  const [newId, setNewId] = useState("");
   const [isContactList, setIsContactList] = useState(true);
   const [contacts, setContacts] = useState([]);
 
