@@ -247,7 +247,6 @@ export default function ContactList() {
   };
 
   const handleNUSMods = async () => {
-    const data = { name: "Mike" };
     const res = await axios
       .get(
         "https://pxrs89it1i.execute-api.ap-southeast-1.amazonaws.com/staging",
