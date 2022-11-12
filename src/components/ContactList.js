@@ -7,6 +7,7 @@ export default function ContactList() {
   const [newPhone, setNewPhone] = useState(null);
   const [newGender, setNewGender] = useState(null);
   const [newId, setNewId] = useState(null);
+  const [isContactList, setIsContactList] = useState(true);
   const [contacts, setContacts] = useState([]);
 
   const handleDeleteContact = async (idx) => {
@@ -17,7 +18,7 @@ export default function ContactList() {
     const res = await axios
       .delete(`${FRONTEND_URL}/${targetId}`, {})
       .catch((err) => {
-        setErrorDialog("Delete contact failed!");
+        console.log("Delete contact failed!");
         return;
       });
     if (res.data.message === "Failed to delete from database") {
@@ -48,7 +49,7 @@ export default function ContactList() {
         gender: targetGender,
       })
       .catch((err) => {
-        setErrorDialog("Update contact failed!");
+        console.log("Update contact failed!");
         return;
       });
     console.log(res);
@@ -75,37 +76,55 @@ export default function ContactList() {
   };
 
   const getContactsToRender = () => {
-    return contacts.map((contact, idx) => {
-      return (
-        <div className="columns contact p-3 mt-3">
-          <div className="column has-text-left">
-            <div key={idx}>
-              {contact.name}
-              <h1>{contact.email}</h1>
-              <h2>{contact.phone}</h2>
-              <h3>{contact.gender}</h3>
-              <h4>{contact.id}</h4>
+    if (isContactList) {
+      return contacts.map((contact, idx) => {
+        return (
+          <div className="columns contact p-3 mt-3">
+            <div className="column has-text-left">
+              <div key={idx}>
+                {contact.name}
+                <h1>{contact.email}</h1>
+                <h2>{contact.phone}</h2>
+                <h3>{contact.gender}</h3>
+                <h4>{contact.id}</h4>
+              </div>
+            </div>
+            <div className="column is-narrow">
+              <div className="buttons">
+                <button
+                  className="button is-success"
+                  onClick={() => handleUpdateContact(idx)}
+                >
+                  Update
+                </button>
+                <button
+                  className="button is-danger"
+                  onClick={() => handleDeleteContact(idx)}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
-          <div className="column is-narrow">
-            <div className="buttons">
-              <button
-                className="button is-success"
-                onClick={() => handleUpdateContact(idx)}
-              >
-                Update
-              </button>
-              <button
-                className="button is-danger"
-                onClick={() => handleDeleteContact(idx)}
-              >
-                Delete
-              </button>
+        );
+      });
+    } else {
+      return contacts.map((contact, idx) => {
+        return (
+          <div className="columns contact p-3 mt-3">
+            <div className="column has-text-left">
+              <div key={idx}>
+                {contact.name}
+                <h1>{contact.email}</h1>
+                <h2>{contact.phone}</h2>
+                <h3>{contact.gender}</h3>
+                <h4>{contact.id}</h4>
+              </div>
             </div>
           </div>
-        </div>
-      );
-    });
+        );
+      });
+    }
   };
 
   const handleNameChanged = (_event) => {
@@ -130,7 +149,7 @@ export default function ContactList() {
 
   const handleGetAllContact = async () => {
     const res = await axios.get(`${FRONTEND_URL}/`, {}).catch((err) => {
-      setErrorDialog("Get all contact failed!");
+      console.log("Get all contact failed!");
       return;
     });
     if (res.data.message === "Failed to retrieve all from database") {
@@ -153,8 +172,9 @@ export default function ContactList() {
           id: res.data.data[key]._id,
         };
         newContactList.push(temp);
-        setContacts(newContactList);
       }
+      setIsContactList(true);
+      setContacts(newContactList);
     }
   };
 
@@ -163,7 +183,7 @@ export default function ContactList() {
     const res = await axios
       .get(`${FRONTEND_URL}/${targetId}`, {})
       .catch((err) => {
-        setErrorDialog("Get specific contact failed!");
+        console.log("Get specific contact failed!");
         return;
       });
     if (res.data.message === "Failed to retrieve from database") {
@@ -201,7 +221,7 @@ export default function ContactList() {
         gender: targetGender,
       })
       .catch((err) => {
-        setErrorDialog("Post contact failed!");
+        console.log("Post contact failed!");
         return;
       });
     if (res.data.message === "Failed to post to database") {
@@ -224,6 +244,32 @@ export default function ContactList() {
         },
       ]);
     }
+  };
+
+  const handleNUSMods = async () => {
+    const data = { name: "Mike" };
+    const res = await axios
+      .get(
+        "https://pxrs89it1i.execute-api.ap-southeast-1.amazonaws.com/staging",
+        {}
+      )
+      .catch((error) => {
+        console.log(error);
+      });
+    const newContactList = [];
+    for (var key in res.data) {
+      if (
+        res.data[key].moduleCode.toLowerCase().includes(newId.toLowerCase())
+      ) {
+        const temp = {
+          name: res.data[key].moduleCode,
+          email: res.data[key].title,
+        };
+        newContactList.push(temp);
+      }
+    }
+    setIsContactList(false);
+    setContacts(newContactList);
   };
 
   return (
@@ -257,7 +303,7 @@ export default function ContactList() {
           <input
             className="input id is-success mb-3"
             type="text"
-            placeholder="id of contact"
+            placeholder="id of contact or module code"
             onChange={handleIdChanged}
           />
         </div>
@@ -285,6 +331,11 @@ export default function ContactList() {
             onClick={handleGetAllContact}
           >
             Get All
+          </button>
+        </div>
+        <div className="column NUSModsbutton">
+          <button className="button is-link is-large" onClick={handleNUSMods}>
+            NUSMods
           </button>
         </div>
       </div>
